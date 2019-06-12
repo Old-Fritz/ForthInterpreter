@@ -15,8 +15,8 @@ section .text
 _start:
 	mov rstack, rstack_start
 	mov pc, program
-	push 3
-	push 6
+	push 7
+	push 8
 	jmp next
 
 next:
@@ -25,4 +25,4 @@ next:
 	jmp [w]
 	
 program:
-	dq xt_plus, xt_dot, xt_bye
+	dq xt_less, xt_dot, xt_bye
