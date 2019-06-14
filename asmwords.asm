@@ -1,51 +1,53 @@
 %include "macros.asm"
-%include "lib.asm"
+
+extern print_newline
+extern print_int
 
 ; stack
-native 'drop', drop, 0
+native 'drop', drop
 	pop rax
 	jmp next
 	
-native 'swap', swap, 0
+native 'swap', swap
 	pop rax
 	pop rdx
 	push rax
 	push rdx
 	jmp next
-native 'dup', dup, 0
+native 'dup', dup
 	push qword [rsp]
 	jmp next
 	
 ; arifmetic
-native '+', add, 0
+native '+', add
 	pop rax
 	add [rsp], rax
 	jmp next
-native '*', mul, 0
+native '*', mul
 	pop rax
 	pop rdx
 	imul rdx
 	push rax
 	jmp next
-native '/', div, 0
+native '/', div
 	pop rcx
 	pop rax
 	cqo
 	idiv rcx
 	push rax
 	jmp next
-native '%', mod, 0
+native '%', mod
 	pop rcx
 	pop rax
 	cqo
 	idiv rcx
 	push rdx
 	jmp next
-native '-', sub, 0
+native '-', sub
 	pop rax
 	sub [rsp], rax
 	jmp next
-native '=', equal, 0
+native '=', equal
 	pop rax
 	pop rdx
 	cmp rax, rdx
@@ -55,7 +57,7 @@ native '=', equal, 0
 	.eq:
 	push 1
 	jmp next
-native '<', less, 0
+native '<', less
 	pop rax
 	pop rdx
 	cmp rdx, rax
@@ -67,43 +69,147 @@ native '<', less, 0
 	jmp next
 	
 ; logic
-native 'not', not, 0
-native 'and', and, 0
-native 'or', or, 0
-native 'land', land, 0
-native 'lor', lor, 0
-
+native 'not', not
+	pop rax
+	cmp rax, 0
+	je .zero
+	push 1
+	jmp next
+	.zero:
+	push 0
+	jmp next
+native 'and', and
+	pop rax
+	and [rsp], rax
+	jmp next
+native 'or', or
+	pop rax
+	or [rsp], rax
+	jmp next
+native 'land', land
+	pop rax
+	and [rsp], rax
+	jz .not
+	push 1
+	jmp next
+	.not:
+	push 0
+	jmp next
+native 'lor', lor
+	pop rax
+	or [rsp], rax
+	jz .not
+	push 1
+	jmp next
+	.not:
+	push 0
+	jmp next
+	
 ; r stack
-native '>r', rpush, 0
-native 'r>', rpop, 0
-native 'r@', rfetch, 0
+native '>r', rpush
+	sub rstack, 8
+	pop qword[rstack]
+	jmp next
+native 'r>', rpop
+	push qword[rstack]
+	add rstack, 8
+	jmp next
+native 'r@', rfetch
+	push qword[rstack]
+	jmp next
 
 ; memory
-native '@', fetch, 0
-native '!', write, 0
-native 'c!', c_write, 0
-native 'c@', char_fetch, 0
-native 'execute', execute, 0
-native 'forth-dp', forth_dp, 0
+native '@', fetch
+	pop rax
+	push qword [rax]
+	jmp next
+native '!', write
+	pop rax
+	pop rdx
+	mov qword [rax], rdx
+	jmp next
+native 'c!', c_write
+	pop rax
+	pop rdx
+	mov [rax], dl
+	jmp next
+native 'c@', char_fetch
+	pop rax
+	xor rdx, rdx
+	mov dl, byte [rax]
+	push rdx
+	jmp next
+native 'execute', execute
+	push rax
+	mov w, rax
+	jmp [w]
+native 'forth-dp', forth_dp
+	push qword dp
+	jmp next
 
 ; running control
-native 'docol', docol, 0
-native 'branch', branch, 0
-native '0branch', 0branch, 0
+native 'docol', docol
+	sub rstack, 8
+	mov [rstack], pc
+	add w, 8
+	mov pc, w
+	jmp next
+native 'branch', branch
+	mov pc, [pc]
+	jmp next
+native '0branch', branch0
+	pop rax
+	test rax, rax
+	jz .goto
+	add pc, 8
+	jmp next
+	.goto:
+	mov pc, [pc]
+	jmp next
 native 'exit', exit, 0
+	mov pc, [rstack]
+	add rstack, 8
+	jmp next
 
 ; utils
-native 'lit', lit, 0
-native 'forth-sp', forth_sp, 0
-native 'forth-stack-base', forth_stack_base, 0
-native 'syscall', syscall, 0
-native 'bye', bye, 0
+native 'lit', lit
+	push qword [pc]
+	add pc, 8
+	jmp next
+native '.S', show_stack
+    mov rcx, rsp
+    .loop:
+        cmp rcx, [stack_start] 
+        jae next
+        mov rdi, [rcx]
+        push rcx
+        call print_int
+        call print_newline
+        pop rcx
+        add rcx, 8
+        jmp .loop
+native 'syscall', syscall
+	pop r9
+    pop r8
+    pop r10
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    syscall
+    push rax
+    push rdx
+    jmp next
+native 'bye', bye
 	mov rax, 60
 	xor rdi, rdi
 	syscall
-native '.', dot, 0
+native '.', dot
 	pop rdi
 	call print_int
 	call print_newline
 	jmp next
 
+native "forth-input-fd", fd
+    push qword 0
+    jmp next

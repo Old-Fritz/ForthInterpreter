@@ -1,5 +1,20 @@
 section .text
 
+global string_length
+global print_string
+global print_error
+global print_char
+global print_newline
+global exit
+global print_uint
+global print_int
+global read_char
+global read_word
+global parse_uint
+global parse_int
+global string_equals
+global string_copy
+
 string_length:
 	xor rax, rax
 	.begin:
@@ -9,7 +24,6 @@ string_length:
 	jmp .begin
 	.end:
 	ret
-
 
 print_string:
 	push rdi
@@ -173,9 +187,6 @@ string_equals:
 .end:
     xor rax, rax
     ret
-    
-    
-    
 
 string_copy:
 	push rdi 

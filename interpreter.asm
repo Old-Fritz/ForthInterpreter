@@ -1,4 +1,4 @@
-%include "asmwords.asm"
+
 
 global _start
 
@@ -9,14 +9,23 @@ global _start
 section .bss
 resq 1023
 rstack_start: resq 1
+user_mem: resq 65536 
+
+section .data
+dp: dq user_mem 
+stack_start: dq 0
+
+
+%include "asmwords.asm"
 
 section .text
 
 _start:
 	mov rstack, rstack_start
+	mov [stack_start], rsp
 	mov pc, program
 	push 7
-	push 8
+	push 9
 	jmp next
 
 next:
@@ -25,4 +34,4 @@ next:
 	jmp [w]
 	
 program:
-	dq xt_less, xt_dot, xt_bye
+	dq xt_show_stack,  xt_bye

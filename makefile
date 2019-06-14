@@ -3,14 +3,14 @@ ASM=nasm
 
 all: forth
 
-forth: interpreter.o
-	ld -o forth interpreter.o
+forth: interpreter.o lib.o
+	ld -o forth interpreter.o lib.o
 
-interpreter.o: interpreter.asm lib.asm asmwords.asm
+interpreter.o: interpreter.asm asmwords.asm
 	$(ASM) $(AFLAGS) interpreter.asm
-
-dict.o: dict.asm 
-	$(ASM) $(AFLAGS) dict.asm
+	
+lib.o: lib.inc
+	$(ASM) $(AFLAGS) lib.inc
 
 clean:
 	rm -f *.o
