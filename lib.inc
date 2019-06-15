@@ -14,6 +14,7 @@ global parse_uint
 global parse_int
 global string_equals
 global string_copy
+global find_word
 
 string_length:
 	xor rax, rax
@@ -94,7 +95,6 @@ read_char:
 	push 0
 	mov rdx, 1
 	mov rax, 0
-	mov rdi, 0
 	mov rsi, rsp
 	syscall
 	pop rax
@@ -102,10 +102,13 @@ read_char:
 
 read_word:
 	xor r8, r8
+	push rsi
 	push rdi
-	mov r10, rdi
-	mov r9, rsi
+	mov r10, rsi
+	mov r9, rdx
 .begin:
+	pop rdi
+	push rdi
 	call read_char
 	test rax, rax
 	jz .end
@@ -114,6 +117,8 @@ read_word:
 	cmp rax, 0x10
 	jz .begin
 	cmp rax, 0x9
+	jz .begin
+	cmp rax, 0x0A
 	jz .begin
 
 .read:
@@ -122,6 +127,8 @@ read_word:
 	jg .error
 	mov [r10], rax
 	inc r10
+	pop rdi
+	push rdi
 	call read_char
 	test rax, rax
 	jz .end
@@ -131,13 +138,17 @@ read_word:
 	jz .end
 	cmp rax, 0x9
 	jz .end
+	cmp rax, 0x0A
+	jz .end
 	jmp .read
 .end:
 	mov byte[r10], 0
 	mov rdx, r8
 	pop rax
+	pop rax
 	ret
 	.error:
+	pop rax
 	pop rax
 	xor rax, rax
 	ret
@@ -210,3 +221,26 @@ string_copy:
 	.error:
 	xor rax, rax
 	ret
+	
+find_word:
+    .loop:
+        add rsi, 9 ; get key ptr
+        push rdi
+        push rsi
+        call string_equals
+        pop rsi
+        pop rdi
+        test rax, rax
+        jnz .find_exit
+        sub rsi, 9 ; get ptr to next word
+        cmp qword[rsi], 0
+        jz .not_find_exit
+        mov rsi, qword[rsi]
+        jmp .loop
+    .find_exit:
+        sub rsi, 9
+		mov rax, rsi
+        ret
+    .not_find_exit:
+        xor rax, rax
+        ret

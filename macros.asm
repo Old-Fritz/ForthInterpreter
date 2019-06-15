@@ -27,7 +27,7 @@
 	db %3
 	; update the reference to the last word
 	%define _lw wh_ %+ %2
-	xt_ %+ %2 : dq xt_colon
+	xt_ %+ %2 : dq i_docol
 %endmacro
 
 %macro colon 2

@@ -1,4 +1,3 @@
-%include "macros.asm"
 
 extern print_newline
 extern print_int
@@ -73,10 +72,10 @@ native 'not', not
 	pop rax
 	cmp rax, 0
 	je .zero
-	push 1
+	push 0
 	jmp next
 	.zero:
-	push 0
+	push 1
 	jmp next
 native 'and', and
 	pop rax
@@ -128,7 +127,7 @@ native '!', write
 	pop rdx
 	mov qword [rax], rdx
 	jmp next
-native 'c!', c_write
+native 'c!', char_write
 	pop rax
 	pop rdx
 	mov [rax], dl
@@ -139,10 +138,16 @@ native 'c@', char_fetch
 	mov dl, byte [rax]
 	push rdx
 	jmp next
-native 'execute', execute
-	push rax
-	mov w, rax
-	jmp [w]
+native ',', comma
+	mov rax, [here]
+    pop qword [rax]
+    add qword [here], 8
+    jmp next
+native 'c,', char_comma
+	pop rax
+	mov [here], al
+    add qword [here], 8
+    jmp next
 native 'forth-dp', forth_dp
 	push qword dp
 	jmp next
@@ -209,6 +214,10 @@ native '.', dot
 	call print_int
 	call print_newline
 	jmp next
+native 'execute', execute
+	pop rax
+    mov w, rax
+    jmp [rax]
 
 native "forth-input-fd", fd
     push qword 0

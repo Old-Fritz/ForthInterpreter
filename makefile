@@ -3,11 +3,11 @@ ASM=nasm
 
 all: forth
 
-forth: interpreter.o lib.o
-	ld -o forth interpreter.o lib.o
+forth: forth.o lib.o
+	ld -o forth forth.o lib.o
 
-interpreter.o: interpreter.asm asmwords.asm
-	$(ASM) $(AFLAGS) interpreter.asm
+forth.o: forth.asm asmwords.asm interpreter.asm macros.asm
+	$(ASM) $(AFLAGS) forth.asm
 	
 lib.o: lib.inc
 	$(ASM) $(AFLAGS) lib.inc
