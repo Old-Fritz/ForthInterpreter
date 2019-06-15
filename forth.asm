@@ -41,7 +41,7 @@ next:
 	
 
 program:
-	dq xt_interpret, xt_bye
+	dq xt_interpret, xt_branch, program
 	
 colon 'sq', sq
 	dq xt_dup, xt_mul, xt_exit

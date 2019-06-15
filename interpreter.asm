@@ -102,19 +102,19 @@ colon 'interpret', interpret
 	dq xt_word_buf, xt_find, xt_dup, xt_not, xt_branch0, .cfa ; find in dictionary and process command
 	dq xt_drop, xt_word_buf, xt_parse_int, xt_branch0, .not_found ; else try parse
 	dq xt_state, xt_fetch, xt_branch0, .compile_stack
-	dq xt_interpret, xt_exit
+	dq xt_exit
 	.compile_stack:
 	dq xt_lit, xt_lit, xt_comma, xt_comma ; add xt_lit and number to command
-	dq xt_interpret, xt_exit
+	dq xt_exit
 	.cfa:
 	dq xt_cfa
 	dq xt_state, xt_fetch, xt_branch0, .compile_command
-	dq xt_execute, xt_interpret, xt_exit
+	dq xt_execute, xt_exit
 	.compile_command:
 		dq xt_dup, xt_lit, xt_semicolon, xt_equal, xt_not
 		dq xt_branch0, .compile_end
-		dq xt_comma, xt_interpret, xt_exit
+		dq xt_comma, xt_exit
 	.compile_end:
-		dq xt_semicolon, xt_drop, xt_interpret, xt_exit
+		dq xt_semicolon, xt_drop, xt_exit
 	.not_found:
-		dq xt_drop, xt_interpret, xt_exit
+		dq xt_drop, xt_exit
