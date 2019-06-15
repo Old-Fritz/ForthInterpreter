@@ -104,8 +104,14 @@ colon 'interpret', interpret
 	dq xt_state, xt_fetch, xt_branch0, .compile_stack
 	dq xt_exit
 	.compile_stack:
-	dq xt_lit, xt_lit, xt_comma, xt_comma ; add xt_lit and number to command
-	dq xt_exit
+	; check if previus is branch
+	dq xt_here, xt_lit, 8, xt_sub, xt_fetch
+	dq xt_dup, xt_lit, xt_branch, xt_equal, xt_not, xt_branch0, .is_branch  	; branch
+	dq xt_dup, xt_lit, xt_branch0, xt_equal, xt_not, xt_branch0, .is_branch  	; branch0
+	dq xt_drop
+	dq xt_lit, xt_lit, xt_comma, xt_comma, xt_exit ; add xt_lit and number to command
+	.is_branch:
+	dq xt_drop, xt_comma, xt_exit
 	.cfa:
 	dq xt_cfa
 	dq xt_state, xt_fetch, xt_branch0, .compile_command

@@ -1,0 +1,1 @@
+: ' forth_input_fd word_buf word_buf_size read_word 

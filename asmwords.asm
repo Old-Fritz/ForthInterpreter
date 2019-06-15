@@ -148,7 +148,7 @@ native 'c,', char_comma
 	mov [here], al
     add qword [here], 8
     jmp next
-native 'forth-dp', forth_dp
+native 'forth_dp', forth_dp
 	push qword dp
 	jmp next
 
@@ -219,6 +219,6 @@ native 'execute', execute
     mov w, rax
     jmp [rax]
 
-native "forth-input-fd", fd
+native 'forth_input_fd', fd
     push qword 0
     jmp next
