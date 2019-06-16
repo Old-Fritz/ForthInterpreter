@@ -212,7 +212,6 @@ native 'bye', bye
 native '.', dot
 	pop rdi
 	call print_int
-	call print_newline
 	jmp next
 native 'execute', execute
 	pop rax
