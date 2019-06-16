@@ -10,7 +10,10 @@ native 'state', state
 	push state
 	jmp next
 native 'here', here
-	push here
+	push qword [here]
+	jmp next
+native 'last_word', last_word
+	push last_word
 	jmp next
 native 'stack', stack
 	push rsp
@@ -80,6 +83,21 @@ native 'create', create
 	mov [here], rcx ; update here
 	jmp next
 
+colon "'", tick, 1
+	; find word from input
+	.read:
+		dq xt_fd, xt_word_buf, xt_word_buf_size, xt_read_word
+	dq xt_branch0, .read
+	dq xt_word_buf, xt_find, xt_dup, xt_branch0, .no_word
+	dq xt_cfa
+	; check state
+    dq xt_state, xt_fetch, xt_not, xt_branch0, .interpret
+	; compile state
+    dq xt_lit, xt_lit, xt_comma, xt_comma
+	.interpret:
+	dq xt_exit
+    .no_word:
+    dq xt_drop, xt_exit
 
 colon ':', colon
 	.read:
@@ -90,37 +108,37 @@ colon ':', colon
 	dq xt_lit, i_docol, xt_comma
 	dq xt_exit
 
-colon ';', semicolon
+colon ';', semicolon, 1
 	dq xt_lit, FORTH_INTERPRET, xt_state, xt_write
 	dq xt_lit, xt_exit, xt_comma
 	dq xt_exit
 	
 colon 'interpret', interpret
 	.read:  ; read next word
-	dq xt_fd, xt_word_buf, xt_word_buf_size, xt_read_word
+		dq xt_fd, xt_word_buf, xt_word_buf_size, xt_read_word
 	dq xt_branch0, .read
 	dq xt_word_buf, xt_find, xt_dup, xt_not, xt_branch0, .cfa ; find in dictionary and process command
 	dq xt_drop, xt_word_buf, xt_parse_int, xt_branch0, .not_found ; else try parse
-	dq xt_state, xt_fetch, xt_branch0, .compile_stack
+	dq xt_state, xt_fetch, xt_branch0, .compile_number
 	dq xt_exit
-	.compile_stack:
-	; check if previus is branch
-	dq xt_here, xt_lit, 8, xt_sub, xt_fetch
-	dq xt_dup, xt_lit, xt_branch, xt_equal, xt_not, xt_branch0, .is_branch  	; branch
-	dq xt_dup, xt_lit, xt_branch0, xt_equal, xt_not, xt_branch0, .is_branch  	; branch0
-	dq xt_drop
-	dq xt_lit, xt_lit, xt_comma, xt_comma, xt_exit ; add xt_lit and number to command
+	.compile_number:
+		; check if previus is branch
+		dq xt_here, xt_lit, 8, xt_sub, xt_fetch
+		dq xt_dup, xt_lit, xt_branch, xt_equal, xt_not, xt_branch0, .is_branch  	; branch
+		dq xt_dup, xt_lit, xt_branch0, xt_equal, xt_not, xt_branch0, .is_branch  	; branch0
+		dq xt_drop
+		dq xt_lit, xt_lit, xt_comma, xt_comma, xt_exit ; add xt_lit and number to command
 	.is_branch:
-	dq xt_drop, xt_comma, xt_exit
+		dq xt_drop, xt_comma, xt_exit
 	.cfa:
-	dq xt_cfa
-	dq xt_state, xt_fetch, xt_branch0, .compile_command
-	dq xt_execute, xt_exit
-	.compile_command:
-		dq xt_dup, xt_lit, xt_semicolon, xt_equal, xt_not
-		dq xt_branch0, .compile_end
+		dq xt_cfa
+		; is interptet mod
+		dq xt_state, xt_fetch, xt_not, xt_branch0, .interpret
+		; is immidiate
+		dq xt_dup, xt_lit, 1, xt_sub, xt_char_fetch, xt_not, xt_branch0, .interpret 
+		; compile command
 		dq xt_comma, xt_exit
-	.compile_end:
-		dq xt_semicolon, xt_drop, xt_exit
+	.interpret:
+		dq xt_execute, xt_exit
 	.not_found:
 		dq xt_drop, xt_exit
